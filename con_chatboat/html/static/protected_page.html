@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Protected Page</title>
+    <link rel="stylesheet" href="./css/protected.css">
+</head>
+<body>
+    <div class="header">
+        <div class="user-info">
+            <span id="user-email"></span> | 
+            <span id="login-time"></span>
+        </div>
+    </div>
+
+    <div class="chat-container">
+        <textarea id="chat-box" readonly></textarea>
+        <textarea id="user-input" placeholder="Type your question here..."></textarea>
+        <button id="submit-query">Submit</button>
+    </div>
+
+    <script src="./js/protected.js"></script>
+</body>
+</html>
