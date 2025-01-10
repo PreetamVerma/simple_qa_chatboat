@@ -6,9 +6,12 @@ import jwt
 import time
 from fastapi import Header
 from fastapi.middleware.cors import CORSMiddleware
+from pinecone_connector import Pinecone_Connector
+from llm import Gemini_model
 
 
-
+llm_text_generator = Gemini_model()
+retriever_obj = Pinecone_Connector()
 app = FastAPI()
 
 app.add_middleware(
@@ -25,7 +28,6 @@ TOKEN_EXPIRY = 3600  # 1 hour
 
 
 
-# Mock database
 user_db: Dict[str, Dict] = {
     "alice@email.com": {"name": "Alice", "access": ["Company_A"]},
     "bob@email.com": {"name": "Bob", "access": ["Company_B", "Company_C"]},
@@ -33,8 +35,6 @@ user_db: Dict[str, Dict] = {
 }
 
 
-
-# Pydantic Models
 class LoginRequest(BaseModel):
     email: EmailStr
 
@@ -49,8 +49,6 @@ class QueryRequest(BaseModel):
     question: str
 
 
-
-# Generate JWT token
 def create_token(email: str) -> str:
     payload = {
         "email": email,
@@ -58,8 +56,6 @@ def create_token(email: str) -> str:
     }
     token = jwt.encode(payload, SECRET_KEY, algorithm="HS256")
     return token
-
-
 
 
 def verify_token(authorization: str = Header(...)) -> AuthenticatedUser:
@@ -80,7 +76,6 @@ def verify_token(authorization: str = Header(...)) -> AuthenticatedUser:
         raise HTTPException(status_code=401, detail="Invalid token")
 
     
-# Function to load past queries from the file
 def load_past_queries(email: str) -> str:
     file_path = f"queries_{email}.txt"
     if os.path.exists(file_path):
@@ -89,13 +84,10 @@ def load_past_queries(email: str) -> str:
     return ""
 
 
-
-# Function to save the new query to the file
 def save_query(email: str, query: str) -> None:
     file_path = f"queries_{email}.txt"
     with open(file_path, "a") as file:
         file.write(query + "\n")
-
 
 
 # Login endpoint
@@ -110,52 +102,26 @@ def login(request: LoginRequest):
 
 
 
-# Protected route
-@app.get("/protected")
-def protected_route(user: AuthenticatedUser = Depends(verify_token)):
-    return {"message": f"Hello, {user.name}!", "access": user.access}
-
-
-
 # Query endpoint (saving and returning past interactions)
 @app.post("/query")
 def handle_query(request: QueryRequest, user: AuthenticatedUser = Depends(verify_token)):
     # Load past queries from the file
     past_queries = load_past_queries(user.email)
-    
-    # Mock search based on access rights
-    documents = {
-        "Company_A": "Company A revenue in Q4 was $1.5 billion.",
-        "Company_B": "Company B revenue in Q4 was $2.0 billion.",
-        "Company_C": "Company C revenue in Q4 was $1.8 billion.",
-        "Company_D": "Company D revenue in Q4 was $2.2 billion.",
-        "Company_E": "Company E revenue in Q4 was $2.5 billion."
-    }
 
-    # Search only in user's accessible documents
-    results = [text for company, text in documents.items() if company in user.access]
-
-    if not results:
+    retreiver_response_text = retriever_obj.search_documents(request.question, user.email)
+    if len(retreiver_response_text)==0:
         raise HTTPException(status_code=403, detail="No access to relevant documents.")
     
-    # For simplicity, concatenate all results (in real-world, you'd use an LLM or search engine)
-    combined_results = " ".join(results)
-    
-    # Save new query to the file
-    save_query(user.email, request.question)
-    
-    # Return past queries along with the new result
-    return {"past_queries": past_queries, "new_query": request.question, "response": combined_results}
+    llm_response = llm_text_generator.text_prompt(user_query=request.question, retrieved_documents=retreiver_response_text, previous_conversation=past_queries)
+
+    save_query(user.email, 'user:\t'+request.question + '\nsystem:\t'+llm_response)
+    return {"past_queries": past_queries, "new_query": request.question, "response": llm_response}
 
 
-# Get user profile
 @app.get("/users/me")
 def get_user_profile(user: AuthenticatedUser = Depends(verify_token)):
     return {"email": user.email, "name": user.name, "access": user.access}
 
-
-
-# Logout endpoint (optional)
 @app.post("/logout")
 def logout():
     return {"message": "User logged out successfully. Clear token on client side."}

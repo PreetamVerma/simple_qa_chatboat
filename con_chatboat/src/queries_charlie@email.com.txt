@@ -1,0 +1,12 @@
+user:	What SBI Reports says about last quarter results
+system:	The provided documents do not contain information about SBI's last quarter results.
+user:	What SBI Reports says about last quarter results
+system:	The provided documents do not contain information about SBI's last quarter results.
+user:	SBI is expected to sustain its steady performance in terms of growth and profitability in the near to medium term. Asset quality is holding up well and the portfolio is still not showing worrying signs, including unsecured retail loans despite the slowdown in growth.
+system:	The provided documents do not contain information about SBI's last quarter results or any specific details about its performance, asset quality, or portfolio. Therefore, I cannot answer your question based on the retrieved documents.
+user:	Tell me what you know about SBI reports
+system:	The retrieved documents do not contain any information about SBI reports. However, based on general knowledge, SBI reports are likely to include financial information about the bank's performance, such as its earnings, assets, and liabilities. They may also include information about the bank's strategic direction and future plans.
+user:	If not can you check if SBI financial results are there
+system:	The retrieved documents do not contain any information about SBI's financial results.  However, based on general knowledge, SBI reports would likely include information about the bank's financial performance, such as earnings, assets, and liabilities.
+user:	What Mirae Asset reports says about SBI Stock Price.
+system:	The retrieved documents do not contain any information about Mirae Asset reports or their analysis of SBI stock price. Therefore, I cannot answer your question based on the provided documents.
